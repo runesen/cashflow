@@ -2,7 +2,7 @@ import datetime as dt
 import pandas as pd
 import typing as T
 import numpy as np
-from dateutil.relativedelta import relativedelta 
+from dateutil.relativedelta import relativedelta
 
 today = dt.date.today()
 today = today + relativedelta(months=+1)
