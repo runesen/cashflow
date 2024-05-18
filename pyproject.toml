@@ -2,7 +2,7 @@
 name = "lifelong-budget"
 version = "0.1.0"
 description = ""
-authors = ["rc-halfspace <rc@halfspace.io>"]
+authors = ["Rune Christiansen <krunechristiansen@gmail.com>"]
 readme = "README.md"
 packages = [{include = "lifelong_budget"}]
 
