@@ -2,11 +2,19 @@ import datetime as dt
 import pandas as pd
 import typing as T
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
+from budget.utils.logging_utils import init_logger
+matplotlib.use('MacOSX')
 
-today = dt.date.today()
-today = today + relativedelta(months=+1)
+logger = init_logger()
+
+# we only consider time pr month
+today = dt.date.today().replace(day=1)
+#today = today + relativedelta(months=+1)
 print(today)
+
 
 class Income:
     def __init__(
@@ -20,8 +28,8 @@ class Income:
         self.name = name
         self.monthly_amount = monthly_amount
         self.change_dict = {d: a for d,a in zip(change_at_dates, change_by_amounts)}
-        self.monthly_amounts = pd.DataFrame(columns=['date', 'monthly_amount']).set_index('date')
-        self.cumulative_amounts = pd.DataFrame({'date': [today], 'cumulative_amounts': 0}).set_index('date')
+        self.monthly_amounts = pd.DataFrame(columns=['date', 'amount']).set_index('date')
+        self.cumulative_amounts = pd.DataFrame({'date': [today], 'cumulative_amount': 0}).set_index('date')
         self.last_date = today
         pass
 
@@ -46,7 +54,7 @@ class Income:
 
     def get_summary(self):
         df = self.monthly_amounts.merge(self.cumulative_amounts, on='date', how='right', validate='1:1')
-        df['income'] = self.name
+        df['name'] = self.name
         return df
 
 class Expense:
@@ -61,23 +69,27 @@ class Expense:
         self.name = name
         self.monthly_amount = monthly_amount
         self.change_dict = {d: a for d,a in zip(change_at_dates, change_by_amounts)}
-        self.monthly_expenses = pd.DataFrame(columns=['date', 'monthly_expense']).set_index('date')
-        self.cumulative_amounts = pd.DataFrame({'date': [today], 'cumulative_amounts': 0}).set_index('date')
+        self.monthly_expenses = pd.DataFrame(columns=['date', 'amount']).set_index('date')
+        self.cumulative_amounts = pd.DataFrame({'date': [today], 'cumulative_amount': 0}).set_index('date')
         self.last_date = today
         pass
 
-    def spend(self, money: float) -> float:
+    def spend(self, money: float, amount: float | None = None) -> float:
         """Spend monthly expenses."""
         # Check for change
         assert self.current_date not in self.monthly_expenses.index, "You can only spend this expense once per month."
-        assert money >=  self.monthly_amount, "You don't have enough money!"
-        self.monthly_expenses.loc[self.current_date] = self.monthly_amount
+        assert (amount is not None) or (self.monthly_amount is not None), \
+            "You must either specify an amount here, or in the constructor."
+        # If no amount is supplied, use fixed, specified amount
+        if amount is None:
+            amount = self.monthly_amount
+        self.monthly_expenses.loc[self.current_date] = amount
         self.cumulative_amounts.loc[self.current_date] = (
-            self.monthly_amount +
+            amount +
             self.cumulative_amounts.loc[self.last_date]
         )
         self.last_date = self.current_date
-        return money - self.monthly_amount
+        return money - amount
     
     def update(self):
         self.last_date = self.current_date
@@ -88,7 +100,7 @@ class Expense:
 
     def get_summary(self):
         df = self.monthly_expenses.merge(self.cumulative_amounts, on='date', how='right', validate='1:1')
-        df['expense'] = self.name
+        df['name'] = self.name
         return df
 
 
@@ -97,17 +109,18 @@ class Saving:
         self,
         name: str,
         initial_amount: float,
-        monthly_amount: float,
+        monthly_amount: float | None,
         monthly_interest_rate: float,
     ):
         self.name = name
         self.current_date = today  # internal date reference, to be updated continuously
         self.initial_amount = initial_amount
+        self.current_savings = initial_amount
         self.monthly_amount = monthly_amount
         self.monthly_interest_rate = monthly_interest_rate
-        self.monthly_deposits = pd.DataFrame(columns=['date', 'monthly_deposit']).set_index('date')
-        self.monthly_interests = pd.DataFrame(columns=['date', 'monthly_interests']).set_index('date')
-        self.cumulative_deposits = pd.DataFrame({'date': [today], 'cumulative_deposits': initial_amount}).set_index(
+        self.monthly_amounts = pd.DataFrame(columns=['date', 'amount']).set_index('date')
+        self.monthly_interests = pd.DataFrame(columns=['date', 'interest']).set_index('date')
+        self.cumulative_amount = pd.DataFrame({'date': [today], 'cumulative_amount': initial_amount}).set_index(
             'date')
         self.cumulative_interests = pd.DataFrame({'date': [today], 'cumulative_interests': 0}).set_index('date')
         self.last_date = today
@@ -115,17 +128,24 @@ class Saving:
 
     def deposit(
         self,
+        money: float,
+        amount: float | None = None
     ):
         """Deposit amount on the account at the current date."""
-        assert self.current_date not in self.monthly_deposits.index, "You can only make one deposit per month."
+        assert self.current_date not in self.monthly_amounts.index, "You can only make one deposit per month."
+        assert (amount is not None) or (self.monthly_amount is not None), \
+            "You must either specify an amount here, or in the constructor."
+        # If no amount is supplied, use fixed, specified amount
+        if amount is None:
+            amount = self.monthly_amount
         # Update monthly deposit
-        self.monthly_deposits.loc[self.current_date] = self.monthly_amount
+        self.monthly_amounts.loc[self.current_date] = amount
         # Update cumulative deposit
-        self.cumulative_deposits.loc[self.current_date] = (
-            self.monthly_amount +
-            self.cumulative_deposits.loc[self.last_date]
+        self.cumulative_amount.loc[self.current_date] = (
+            amount +
+            self.cumulative_amount.loc[self.last_date]
         )
-        pass
+        return money - amount
 
     def get_interests(
         self,
@@ -134,7 +154,7 @@ class Saving:
         # Get interests
         self.monthly_interests.loc[self.current_date] = (
             (
-                self.cumulative_deposits.loc[self.last_date].values +
+                self.cumulative_amount.loc[self.last_date].values +
                 self.cumulative_interests.loc[self.last_date].values
             ) * self.monthly_interest_rate)
         # Update cumulative interests
@@ -147,17 +167,23 @@ class Saving:
     def update(self):
         self.last_date = self.current_date
         self.current_date += relativedelta(months=+1)
+        pass
+
+    def get_current_savings(self):
+        cumulative_amount = self.cumulative_amount.loc[self.current_date]
+        cumulative_interests = self.cumulative_interests.loc[self.current_date]
+        return cumulative_amount + cumulative_interests
 
     def get_summary(
         self
     ):
-        df = self.monthly_deposits
-        df = df.merge(self.cumulative_deposits, on='date', how="right", validate="1:1")
+        df = self.monthly_amounts
+        df = df.merge(self.cumulative_amount, on='date', how="right", validate="1:1")
         df = df.merge(self.monthly_interests, on='date', how="left", validate="1:1")
         df = df.merge(self.cumulative_interests, on='date', how="left", validate="1:1")
-        df["cumulative_savings"] = df["cumulative_deposits"] + df["cumulative_interests"]
+        df["cumulative_savings"] = df["cumulative_amount"] + df["cumulative_interests"]
         df = df[df.columns[[0, 1, 4, 2, 3]]]
-        df['saving'] = self.name
+        df['name'] = self.name
         return df
 
 class Budget:
@@ -170,6 +196,9 @@ class Budget:
         self.incomes = incomes
         self.expenses = expenses
         self.savings = savings
+        self.n_incomes = len(incomes)
+        self.n_expenses = len(expenses)
+        self.n_savings = len(savings)
         self.current_date = today
         self.income_summary = None
         self.expense_summary = None
@@ -272,8 +301,15 @@ pension_savings = Saving(
     monthly_interest_rate=pension_monthly_interest_rate
 )
 
+deposit_savings = Saving(
+    name = "Deposit Account",
+    initial_amount=current_savings,
+    monthly_amount=savings_monthly_deposit,
+    monthly_interest_rate=savings_interest_rate
+)
+
 account_savings = Saving(
-    name = "Account",
+    name = "Bank Account",
     initial_amount=current_savings,
     monthly_amount=savings_monthly_deposit,
     monthly_interest_rate=savings_interest_rate
@@ -291,7 +327,8 @@ EXPENSES = [
 
 SAVINGS = [
     pension_savings,
-    account_savings,
+    deposit_savings,
+    account_savings
 ]
 
 budget = Budget(
@@ -306,6 +343,7 @@ budget = Budget(
 
 for month in range(100):
     budget.update()
+    date = budget.incomes[0].current_date
 
     # payouts
     money = 0
@@ -319,8 +357,49 @@ for month in range(100):
         pass
 
     # savings
+    for saving in budget.savings[:-1]:
+        money = saving.deposit(money)
+        pass
+
+    # check balance
+    if money < 0:
+        if -money >= budget.savings[-1].get_current_savings():
+            logger.error(f"{date}: You've run out of money!")
+            break
+        else:
+            logger.warning(f"{date}: You're monthly balance is negative. Taking {-money} DKK out of your bank account.")
+
+    # add remainder to bank account
+    budget.savings[-1].deposit(money, money)
+
+    # get interests
     for saving in budget.savings:
-        saving.deposit()
-        saving.get_interests()
+        money = saving.get_interests()
+        pass
 
 budget.get_summary()
+
+# monthly budget at a certain timepoint
+date = today + relativedelta(months=12)
+fig, axes = plt.subplots()
+positions = np.arange(0,3)
+incomes_sum = 0
+for i in budget.incomes:
+    i_value = budget.income_summary.query(f'name == "{i.name}"').loc[date]['amount']
+    axes.bar(x = positions[0], height = i_value, width = .75, label = i.name, bottom = incomes_sum)
+    incomes_sum += i_value
+savings_sum = 0
+for s in budget.savings:
+    s_value = budget.saving_summary.query(f'name == "{s.name}"').loc[date]['amount']
+    axes.bar(x = positions[2], height = s_value, width = .75, label = s.name, bottom = savings_sum)
+    savings_sum += s_value
+expenses_sum = 0
+for e in budget.expenses:
+    e_value = budget.expense_summary.query(f'name == "{e.name}"').loc[date]['amount']
+    axes.bar(x = positions[1], height = e_value, width = .75, label = e.name, bottom = expenses_sum + savings_sum)
+    expenses_sum += e_value
+axes.legend()
+axes.set_xticks(positions)
+axes.set_xticklabels(["Incomes", "Expenses", "Savings"])
+axes.set_ylabel("Amount (DKK)")
+axes.set_title(f"Monthly Budget ({date})")

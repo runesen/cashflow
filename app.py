@@ -1,6 +1,10 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('MacOSX')
+plt.scatter([0,1], [0,1])
+plt.show()
 
 st.set_page_config(page_icon="📈", page_title="Lifelong Budget")
 
