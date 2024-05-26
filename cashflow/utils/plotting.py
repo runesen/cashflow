@@ -16,13 +16,13 @@ def plot_budget_across_time(
 ):
     # Fill with default values
     if from_date is None:
-        from_date = budget.summary.index[1]
+        from_date = budget.incomes[0].summary.index[1]
     if to_date is None:
-        to_date = budget.summary.index[-1]
+        to_date = budget.incomes[0].summary.index[-1]
     # define date range
-    date_range = budget.summary.index[
-        (budget.summary.index >= from_date) &
-        (budget.summary.index <= to_date)
+    date_range = budget.incomes[0].summary.index[
+        (budget.incomes[0].summary.index >= from_date) &
+        (budget.incomes[0].summary.index <= to_date)
     ].drop_duplicates()
     # add incomes on positive half
     _plot_stacked_curves(
@@ -65,7 +65,7 @@ def _plot_stacked_bars(
         pass
     return components_sum
 
-
+# TODO: adjust plotting to allow for negative values of account_savings counting towards incomes.
 def plot_aggregated_budget(
     budget: Budget,
     from_date: dt.date,
