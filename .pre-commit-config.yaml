@@ -1,0 +1,14 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks # Hinders git commit with too large files.
+    rev: v4.5.0
+    hooks:
+    - id: check-added-large-files
+      args: ['--maxkb=1000']
+    - id: check-json
+    - id: check-yaml
+
+-   repo: https://github.com/ambv/black # Auto formats code.
+    rev: 23.9.1
+    hooks:
+    - id: black
+      language_version: python3

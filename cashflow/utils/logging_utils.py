@@ -2,6 +2,7 @@
 import logging
 import colorlog
 
+
 def init_logger(
     run_in_debug_mode: bool = False,
 ) -> logging.Logger:

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import flow
 
+
 @dataclass
 class Directories:
     """Class with all paths used in the repository."""
