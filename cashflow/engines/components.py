@@ -2,17 +2,16 @@ import typing as T
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 import datetime as dt
-from budget.utils.colors import colors
+from cashflow.utils.colors import colors
 
 
 class Income:
     def __init__(
         self,
-        name: str,
-        monthly_amount: float,
+        name: str = "income",
+        monthly_amount: float = 50000,
         change_at_dates: T.List[dt.date] = [],
         change_by_amounts: T.List[float] = [],
-
     ):
         today = dt.date.today().replace(day=1)
         self.current_date = today  # internal date reference, to be updated continuously
@@ -55,8 +54,8 @@ class Income:
 class Expense:
     def __init__(
         self,
-        name: str,
-        monthly_amount: float,
+        name: str = "expense",
+        monthly_amount: float | None = None,
         change_at_dates: T.List[dt.date] = [],
         change_by_amounts: T.List[float] = []
     ):
@@ -106,10 +105,10 @@ class Expense:
 class Saving:
     def __init__(
         self,
-        name: str,
-        initial_amount: float,
-        monthly_amount: float | None,
-        monthly_interest_rate: float,
+        name: str = "saving",
+        initial_amount: float = 0,
+        monthly_amount: float | None = None,
+        monthly_interest_rate: float = 0,
     ):
         today = dt.date.today().replace(day=1)
         self.current_date = today  # internal date reference, to be updated continuously

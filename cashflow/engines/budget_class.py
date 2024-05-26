@@ -1,7 +1,7 @@
 import typing as T
 import pandas as pd
 import datetime as dt
-from budget.engines.components import Income, Expense, Saving
+from cashflow.engines.components import Income, Expense, Saving
 
 class Budget:
     def __init__(

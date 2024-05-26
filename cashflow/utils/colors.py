@@ -1,5 +1,5 @@
 import pandas as pd
-from budget.utils.logging_utils import init_logger
+from cashflow.utils.logging_utils import init_logger
 
 logger = init_logger()
 

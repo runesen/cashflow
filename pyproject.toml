@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "lifelong-budget"
+name = "cashflow"
 version = "0.1.0"
 description = ""
 authors = ["Rune Christiansen <krunechristiansen@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "budget" },
+    { include = "cashflow" },
 ]
 
 

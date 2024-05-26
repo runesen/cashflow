@@ -1,11 +1,11 @@
 import datetime as dt
 import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
-from budget.engines.budget_class import Budget
-from budget.engines.components import Income, Expense, Saving
-from budget.utils.logging_utils import init_logger
+from cashflow.engines.budget_class import Budget
+from cashflow.engines.components import Income, Expense, Saving
+from cashflow.utils.logging_utils import init_logger
 import matplotlib
-from budget.utils.plotting import plot_budget_across_time, plot_aggregated_budget
+from cashflow.utils.plotting import plot_budget_across_time, plot_aggregated_budget
 matplotlib.use('MacOSX')
 
 logger = init_logger()
