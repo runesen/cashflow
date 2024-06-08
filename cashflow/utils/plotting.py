@@ -2,7 +2,7 @@ import datetime as dt
 import typing as T
 import matplotlib
 import pandas as pd
-from cashflow.engines.budget_class import Budget
+from cashflow.engines.budget import Budget
 from cashflow.utils.logging_utils import init_logger
 
 logger = init_logger()

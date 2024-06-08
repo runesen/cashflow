@@ -1,7 +1,7 @@
 import datetime as dt
 import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
-from cashflow.engines.budget_class import Budget
+from cashflow.engines.budget import Budget
 from cashflow.engines.components import Income, Expense, Saving, Credit
 from cashflow.utils.logging_utils import init_logger
 import matplotlib

@@ -28,7 +28,7 @@ class Income:
             {"date": [today], "cumulative_amount": 0}
         ).set_index("date")
         self.last_date = today
-        self.color = colors.get_color(type="income")
+        self.color = colors.get_color(type="income", name=name)
         self.plot_position = 0
         pass
 
@@ -82,7 +82,7 @@ class Expense:
             {"date": [today], "cumulative_amount": 0}
         ).set_index("date")
         self.last_date = today
-        self.color = colors.get_color(type="expense")
+        self.color = colors.get_color(type="expense", name=name)
         self.plot_position = 1
         self.is_credit_controlled = is_credit_controlled
         pass
@@ -153,7 +153,7 @@ class Saving:
             {"date": [today], "cumulative_interests": 0}
         ).set_index("date")
         self.last_date = today
-        self.color = colors.get_color(type="saving")
+        self.color = colors.get_color(type="saving", name=name)
         self.is_credit_controlled = is_credit_controlled
         self.plot_position = 2
         pass

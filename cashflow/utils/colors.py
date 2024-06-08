@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from cashflow.utils.logging_utils import init_logger
 
 logger = init_logger()
@@ -23,18 +24,26 @@ class Colors:
             ]
         )
         df_color["used"] = False
+        df_color["name"] = None
         self.df_color = df_color.set_index("color")
         pass
 
-    def get_color(self, type: str):
-        available_colors = self.df_color.query(
-            f'(type == "{type}") and (not used)'
-        ).index
-        if len(available_colors) == 0:
-            logger.error(f"No more colors of type {type}!")
-        chosen_color = available_colors[0]
-        self.df_color.loc[chosen_color, "used"] = True
-        return chosen_color
+    def get_color(self, type: str, name: str):
+        if len(self.df_color.query(f"(type == '{type}') and (name == '{name}')")) > 0:
+            assigned_color = self.df_color.query(
+                f"(type == '{type}') and (name == '{name}')"
+            ).index[0]
+            return assigned_color
+        else:
+            available_colors = self.df_color.query(
+                f'(type == "{type}") and (not used)'
+            ).index
+            if len(available_colors) == 0:
+                logger.error(f"No more colors of type {type}!")
+            chosen_color = available_colors[0]
+            self.df_color.loc[chosen_color, "used"] = True
+            self.df_color.loc[chosen_color, "name"] = name
+            return chosen_color
 
 
 colors = Colors()
