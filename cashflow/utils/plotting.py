@@ -35,10 +35,21 @@ def plot_budget_across_time(
         .drop_duplicates()
     )
     # add incomes on positive half
-    _plot_stacked_curves(components=budget.incomes, date_range=date_range, cumulative=cumulative, ax=axes[0], sign=1)
+    _plot_stacked_curves(
+        components=budget.incomes,
+        date_range=date_range,
+        cumulative=cumulative,
+        ax=axes[0],
+        sign=1,
+    )
     # add expenses & savings on negative half
-    _plot_stacked_curves(components=budget.expenses + budget.savings, date_range=date_range, cumulative=cumulative,
-                         ax=axes[0], sign=-1)
+    _plot_stacked_curves(
+        components=budget.expenses + budget.savings,
+        date_range=date_range,
+        cumulative=cumulative,
+        ax=axes[0],
+        sign=-1,
+    )
     axes[0].axhline(y=0, ls="--", c="black", lw=1)
     axes[0].legend()
     title = "budget across time" + (" (cumulative)" if cumulative else "")
@@ -105,11 +116,9 @@ def _plot_unstacked_bars(
     agg: str,
 ):
     for x, c in enumerate(components):
-        c_amounts = (
-            c.summary[(c.summary.index >= from_date) & (c.summary.index <= to_date)][
-                "amount"
-            ]
-        )
+        c_amounts = c.summary[
+            (c.summary.index >= from_date) & (c.summary.index <= to_date)
+            ]["amount"]
         c_value = (
             c_amounts.sum()
             if agg == "sum"
@@ -132,10 +141,7 @@ def _plot_unstacked_bars(
     return None
 
 
-def plot_bars(
-    stacked: bool = True,
-    **kwargs
-):
+def plot_bars(stacked: bool = True, **kwargs):
     return _plot_stacked_bars(**kwargs) if stacked else _plot_unstacked_bars(**kwargs)
 
 
@@ -229,11 +235,10 @@ def _plot_unstacked_curves(
     pass
 
 
-def plot_curves(
-    stacked: bool = True,
-    **kwargs
-):
-    return _plot_stacked_curves(**kwargs) if stacked else _plot_unstacked_curves(**kwargs)
+def plot_curves(stacked: bool = True, **kwargs):
+    return (
+        _plot_stacked_curves(**kwargs) if stacked else _plot_unstacked_curves(**kwargs)
+    )
 
 
 def plot_components_across_time(
@@ -242,7 +247,7 @@ def plot_components_across_time(
     to_date: dt.date | None = None,
     cumulative: bool = True,
     stacked: bool = True,
-    agg: str = "sum"
+    agg: str = "sum",
 ):
     fig, axes = plt.subplots(1, 2, figsize=(10, 3), width_ratios=[3, 1])
 
@@ -267,7 +272,7 @@ def plot_components_across_time(
         cumulative=cumulative,
         ax=axes[0],
         sign=1,
-        stacked=stacked
+        stacked=stacked,
     )
 
     plot_bars(
@@ -276,11 +281,13 @@ def plot_components_across_time(
         to_date=to_date,
         ax=axes[1],
         agg=agg,
-        stacked=stacked
+        stacked=stacked,
     )
 
     type = components[0].type
-    title = f"Monthly {type.lower()}s across time" + (" (cumulative)" if cumulative else "")
+    title = f"Monthly {type.lower()}s across time" + (
+        " (cumulative)" if cumulative else ""
+    )
     axes[0].set_title(title)
     axes[0].legend()
 

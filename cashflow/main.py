@@ -5,7 +5,11 @@ from cashflow.engines.budget import Budget
 from cashflow.engines.components import Income, Expense, Saving, Credit
 from cashflow.utils.logging_utils import init_logger
 import matplotlib
-from cashflow.utils.plotting import plot_budget_across_time, plot_aggregated_budget, plot_components_across_time
+from cashflow.utils.plotting import (
+    plot_budget_across_time,
+    plot_aggregated_budget,
+    plot_components_across_time,
+)
 
 matplotlib.use("MacOSX")
 
@@ -231,5 +235,10 @@ plot_budget_across_time(
 #############################################
 
 plot_components_across_time(
-    components=budget.savings, from_date=from_date, to_date=to_date, stacked=True, cumulative=True, agg="sum"
+    components=budget.savings,
+    from_date=from_date,
+    to_date=to_date,
+    stacked=True,
+    cumulative=True,
+    agg="sum",
 )
