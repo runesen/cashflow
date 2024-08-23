@@ -30,6 +30,7 @@ class Income:
         self.last_date = today
         self.color = colors.get_color(type="income", name=name)
         self.plot_position = 0
+        self.type = "Income"
         pass
 
     def payout(self) -> float:
@@ -85,6 +86,7 @@ class Expense:
         self.color = colors.get_color(type="expense", name=name)
         self.plot_position = 1
         self.is_credit_controlled = is_credit_controlled
+        self.type = "Expense"
         pass
 
     def spend(self, amount: float | None = None) -> float:
@@ -156,6 +158,7 @@ class Saving:
         self.color = colors.get_color(type="saving", name=name)
         self.is_credit_controlled = is_credit_controlled
         self.plot_position = 2
+        self.type = "Saving"
         pass
 
     def deposit(self, amount: float | None = None):

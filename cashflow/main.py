@@ -5,7 +5,7 @@ from cashflow.engines.budget import Budget
 from cashflow.engines.components import Income, Expense, Saving, Credit
 from cashflow.utils.logging_utils import init_logger
 import matplotlib
-from cashflow.utils.plotting import plot_budget_across_time, plot_aggregated_budget
+from cashflow.utils.plotting import plot_budget_across_time, plot_aggregated_budget, plot_components_across_time
 
 matplotlib.use("MacOSX")
 
@@ -213,19 +213,8 @@ plot_aggregated_budget(
 from_date = budget.incomes[0].summary.index[1]
 to_date = budget.incomes[0].summary.index[-1]
 
-fig, axes = plt.subplots(1, 2, figsize=(10, 3), width_ratios=[3, 1], sharey="all")
 plot_budget_across_time(
-    budget, ax=axes[0], from_date=from_date, to_date=to_date, cumulative=False
-)
-plot_aggregated_budget(
-    budget=budget,
-    from_date=from_date,
-    to_date=to_date,
-    ax=axes[1],
-    agg="mean",
-    flip=True,
-    add_ylab=False,
-    add_legend=False,
+    budget=budget, from_date=from_date, to_date=to_date, cumulative=False
 )
 
 
@@ -233,17 +222,14 @@ plot_aggregated_budget(
 # PLOT CUMULATIVE BUDGET ACROSS TIME
 #############################################
 
-fig, axes = plt.subplots(1, 2, figsize=(10, 3), width_ratios=[3, 1], sharey="all")
 plot_budget_across_time(
-    budget=budget, ax=axes[0], from_date=from_date, to_date=to_date, cumulative=True
+    budget=budget, from_date=from_date, to_date=to_date, cumulative=True
 )
-plot_aggregated_budget(
-    budget=budget,
-    from_date=from_date,
-    to_date=to_date,
-    ax=axes[1],
-    agg="sum",
-    flip=True,
-    add_ylab=False,
-    add_legend=False,
+
+#############################################
+# PLOT CUMULATIVE BUDGET ACROSS TIME
+#############################################
+
+plot_components_across_time(
+    components=budget.savings, from_date=from_date, to_date=to_date, stacked=True, cumulative=True, agg="sum"
 )
