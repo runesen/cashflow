@@ -21,9 +21,7 @@ class Income:
         self.name = name
         self.monthly_amount = monthly_amount
         self.change_dict = {d: a for d, a in zip(change_at_dates, change_by_amounts)}
-        self.monthly_amounts = pd.DataFrame(columns=["date", "amount"]).set_index(
-            "date"
-        )
+        self.monthly_amounts = pd.DataFrame(columns=["date", "amount"]).set_index("date")
         self.cumulative_amounts = pd.DataFrame(
             {"date": [today], "cumulative_amount": 0}
         ).set_index("date")
