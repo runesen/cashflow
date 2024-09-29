@@ -154,107 +154,57 @@ for num in range(1, st.session_state["num_savings"] + 1):
 
 budget = Budget(incomes=INCOMES, expenses=EXPENSES, savings=SAVINGS, credits=CREDITS)
 
-#############################################
-# SIMULATE LIFE
-#############################################
+if st.button("Run"):
+    budget.run()
+    budget.get_summary()
 
-for month in range(30 * 12):
-    budget.update()
-    date = budget.incomes[0].current_date
+    #############################################
+    # PLOT STATIC BUDGET
+    #############################################
+    date = today + relativedelta(months=30)
 
-    # payouts
-    money = 0
-    for income in budget.incomes:
-        money += income.payout()
-        pass
+    fig, axes = plt.subplots()
+    plot_aggregated_budget(
+        budget=budget,
+        from_date=date,
+        to_date=date,
+        ax=axes,
+        agg="mean",
+        title=f"Budget ({date})",
+    )
+    st.pyplot(fig)
 
-    # expenses
-    for expense in budget.expenses:
-        if not expense.is_credit_controlled:
-            money -= expense.spend()
-        pass
+    #############################################
+    # PLOT BUDGET ACROSS TIME
+    #############################################
 
-    # savings
-    for saving in budget.savings[1:]:
-        if not saving.is_credit_controlled:
-            money -= saving.deposit()
-        pass
+    from_date = budget.incomes[0].summary.index[1]
+    to_date = budget.incomes[0].summary.index[-1]
 
-    # credits
-    for credit in budget.credits:
-        money -= credit.payoff()
-        pass
+    fig = plot_budget_across_time(
+        budget=budget, from_date=from_date, to_date=to_date, cumulative=False
+    )
+    st.pyplot(fig)
 
-    # check balance
-    if money < 0:
-        if -money >= budget.savings[0].current_savings:
-            logger.error(f"{date}: You've run out of money!")
-            break
-        else:
-            logger.warning(
-                f"{date}: You're monthly balance is negative. Taking {-money} DKK out of your bank account."
-            )
+    #############################################
+    # PLOT CUMULATIVE BUDGET ACROSS TIME
+    #############################################
 
-    # add remainder to bank account
-    budget.savings[0].deposit(money)
+    fig = plot_budget_across_time(
+        budget=budget, from_date=from_date, to_date=to_date, cumulative=True
+    )
+    st.pyplot(fig)
 
-    # get (positive) saving interests
-    for saving in budget.savings:
-        saving.get_interests()
-        pass
+    #############################################
+    # PLOT CUMULATIVE BUDGET ACROSS TIME
+    #############################################
 
-    # add (negative) credit interests
-    for credit in budget.credits:
-        credit.add_interests()
-        pass
-
-budget.get_summary()
-
-#############################################
-# PLOT STATIC BUDGET
-#############################################
-date = today + relativedelta(months=30)
-
-fig, axes = plt.subplots()
-plot_aggregated_budget(
-    budget=budget,
-    from_date=date,
-    to_date=date,
-    ax=axes,
-    agg="mean",
-    title=f"Budget ({date})",
-)
-st.pyplot(fig)
-
-#############################################
-# PLOT BUDGET ACROSS TIME
-#############################################
-
-from_date = budget.incomes[0].summary.index[1]
-to_date = budget.incomes[0].summary.index[-1]
-
-plot_budget_across_time(
-    budget=budget, from_date=from_date, to_date=to_date, cumulative=False
-)
-
-
-#############################################
-# PLOT CUMULATIVE BUDGET ACROSS TIME
-#############################################
-
-plot_budget_across_time(
-    budget=budget, from_date=from_date, to_date=to_date, cumulative=True
-)
-
-#############################################
-# PLOT CUMULATIVE BUDGET ACROSS TIME
-#############################################
-
-plot_components_across_time(
-    components=budget.savings,
-    from_date=from_date,
-    to_date=to_date,
-    stacked=True,
-    cumulative=True,
-    agg="sum",
-)
+    fig = plot_components_across_time(
+        components=budget.savings,
+        from_date=from_date,
+        to_date=to_date,
+        stacked=True,
+        cumulative=True,
+        agg="sum",
+    )
+    st.pyplot(fig)
