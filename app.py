@@ -15,7 +15,7 @@ logger = init_logger()
 # we only consider time pr month
 today = dt.date.today().replace(day=1)
 
-st.set_page_config(page_icon="📈", page_title="Lifelong Budget")
+st.set_page_config(page_icon="📈", page_title="Cashflows")
 
 st.markdown(
     """
