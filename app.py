@@ -20,7 +20,7 @@ st.set_page_config(page_icon="📈", page_title="Lifelong Budget")
 st.markdown(
     """
     # **Cashflow**
-    A simple tool for simulating and visualizing your private economy. 
+    A simple tool for simulating and visualizing your private economy. Test. Test. Test.
 """
 )
 
