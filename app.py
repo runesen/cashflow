@@ -7,7 +7,11 @@ from cashflow.engines.components import Income, Credit, Saving, Expense
 from cashflow.engines.budget import Budget
 import datetime as dt
 from dateutil.relativedelta import relativedelta
-from cashflow.utils.plotting import plot_budget_across_time, plot_aggregated_budget
+from cashflow.utils.plotting import (
+    plot_budget_across_time,
+    plot_aggregated_budget,
+    plot_components_across_time,
+)
 from cashflow.utils.logging_utils import init_logger
 
 logger = init_logger()
@@ -221,3 +225,36 @@ plot_aggregated_budget(
     title=f"Budget ({date})",
 )
 st.pyplot(fig)
+
+#############################################
+# PLOT BUDGET ACROSS TIME
+#############################################
+
+from_date = budget.incomes[0].summary.index[1]
+to_date = budget.incomes[0].summary.index[-1]
+
+plot_budget_across_time(
+    budget=budget, from_date=from_date, to_date=to_date, cumulative=False
+)
+
+
+#############################################
+# PLOT CUMULATIVE BUDGET ACROSS TIME
+#############################################
+
+plot_budget_across_time(
+    budget=budget, from_date=from_date, to_date=to_date, cumulative=True
+)
+
+#############################################
+# PLOT CUMULATIVE BUDGET ACROSS TIME
+#############################################
+
+plot_components_across_time(
+    components=budget.savings,
+    from_date=from_date,
+    to_date=to_date,
+    stacked=True,
+    cumulative=True,
+    agg="sum",
+)
