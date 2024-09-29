@@ -28,7 +28,25 @@ st.markdown(
 """
 )
 
-st.markdown(
+st.sidebar.markdown("# Please supply information ")
+
+st.sidebar.markdown(
+    """
+    ## Basic information
+    """
+)
+
+age = st.sidebar.text_input(label="Current age", value="33", key=f"age")
+retirement_age = st.sidebar.text_input(
+    label="Expected retirement age", value="67", key=f"retirement_age"
+)
+expected_lifespan = st.sidebar.text_input(
+    label="Expected lifespan", value="90", key=f"expected_lifespan"
+)
+year_of_retirement = dt.date.today().year + int(retirement_age) - int(age)
+year_of_death = dt.date.today().year + int(expected_lifespan) - int(age)
+
+st.sidebar.markdown(
     """
     ## Incomes
     """
@@ -37,20 +55,47 @@ st.markdown(
 if "num_incomes" not in st.session_state:
     st.session_state["num_incomes"] = 0
 
-if st.button("Add income"):
+if st.sidebar.button("Add income"):
     st.session_state["num_incomes"] += 1
 
 INCOMES = []
 
-for num in range(1, st.session_state["num_incomes"] + 1):
-    name = st.text_input(label="Income name", value="Salary", key=f"income_name_{num}")
-    monthly_amount = st.number_input(
-        label="monthly amount (DKK)", value=30000, key=f"income_monthly_amount_{num}"
+for i in range(1, st.session_state["num_incomes"] + 1):
+    name = st.sidebar.text_input(
+        label="Income name", value="Salary", key=f"income_name_{i}"
     )
-    income = Income(name=name, monthly_amount=monthly_amount)
+    monthly_amount = st.sidebar.number_input(
+        label="monthly amount (DKK)", value=30000, key=f"income_monthly_amount_{i}"
+    )
+    if f"num_raises_{i}" not in st.session_state:
+        st.session_state[f"num_raises_{i}"] = 0
+
+    if st.sidebar.button("Add raise", key=f"raise_button_{i}"):
+        st.session_state[f"num_raises_{i}"] += 1
+
+    raise_years = []
+    raise_amounts = []
+    for j in range(1, st.session_state[f"num_raises_{i}"] + 1):
+        raise_years.append(
+            st.sidebar.number_input(label="Year", value=2025, key=f"raise_year_{j}")
+        )
+        raise_amounts.append(
+            st.sidebar.number_input(label="Amount", value=1000, key=f"raise_amount_{j}")
+        )
+    raise_dates = [dt.date(year, 1, 1) for year in raise_years]
+
+    income = Income(
+        name=name,
+        monthly_amount=monthly_amount,
+        change_at_dates=raise_dates,
+        change_by_amounts=raise_amounts,
+        last_income_date=dt.date(year_of_retirement, 1, 1),
+    )
+
     INCOMES.append(income)
 
-st.markdown(
+
+st.sidebar.markdown(
     """
     ## Expenses
     """
@@ -59,22 +104,59 @@ st.markdown(
 if "num_expenses" not in st.session_state:
     st.session_state["num_expenses"] = 0
 
-if st.button("Add expense"):
+if st.sidebar.button("Add expense"):
     st.session_state["num_expenses"] += 1
 
 EXPENSES = []
 
 for num in range(1, st.session_state["num_expenses"] + 1):
-    name = st.text_input(
+    name = st.sidebar.text_input(
         label="Expense name", value="Expense", key=f"expense_name_{num}"
     )
-    monthly_amount = st.number_input(
+    monthly_amount = st.sidebar.number_input(
         label="monthly amount (DKK)", value=10000, key=f"expense_monthly_amount_{num}"
     )
     expense = Expense(name=name, monthly_amount=monthly_amount)
     EXPENSES.append(expense)
 
-st.markdown(
+
+st.sidebar.markdown(
+    """
+    ## Savings
+    """
+)
+
+if "num_savings" not in st.session_state:
+    st.session_state["num_savings"] = 0
+
+if st.sidebar.button("Add saving"):
+    st.session_state["num_savings"] += 1
+
+SAVINGS = []
+
+for num in range(1, st.session_state["num_savings"] + 1):
+    name = st.sidebar.text_input(
+        label="Saving name", value="Saving", key=f"saving_name_{num}"
+    )
+    monthly_amount = st.sidebar.number_input(
+        label="monthly amount (DKK)", value=5000, key=f"saving_monthly_amount_{num}"
+    )
+    initial_amount = st.sidebar.number_input(
+        label="current amount (DKK)", value=10000, key=f"saving_initial_amount_{num}"
+    )
+    interest_rate = st.sidebar.number_input(
+        label="annual interest rate", value=0.02, key=f"saving_interest_rate_{num}"
+    )
+    saving = Saving(
+        name=name,
+        monthly_amount=monthly_amount,
+        initial_amount=initial_amount,
+        interest_rate=interest_rate,
+        interest_frequency="annually",
+    )
+    SAVINGS.append(saving)
+
+st.sidebar.markdown(
     """
     ## Credits
     """
@@ -83,23 +165,25 @@ st.markdown(
 if "num_credits" not in st.session_state:
     st.session_state["num_credits"] = 0
 
-if st.button("Add credit"):
+if st.sidebar.button("Add credit"):
     st.session_state["num_credits"] += 1
 
 CREDITS = []
 
 for num in range(1, st.session_state["num_credits"] + 1):
-    name = st.text_input(label="Credit name", value="Credit", key=f"credit_name_{num}")
-    total_amount = st.number_input(
+    name = st.sidebar.text_input(
+        label="Credit name", value="Credit", key=f"credit_name_{num}"
+    )
+    total_amount = st.sidebar.number_input(
         label="total amount (DKK)", value=3000000, key=f"credit_total_amount_{num}"
     )
-    initial_payoff = st.number_input(
+    initial_payoff = st.sidebar.number_input(
         label="initial payoff (DKK)", value=500000, key=f"credit_initial_payoff_{num}"
     )
-    loan_duration = st.number_input(
+    loan_duration = st.sidebar.number_input(
         label="loan duration (years)", value=30, key=f"credit_loan_duration_{num}"
     )
-    annual_interest_rate = st.number_input(
+    annual_interest_rate = st.sidebar.number_input(
         label="annual interest rate",
         value=0.05,
         key=f"credit_annual_interest_rate_{num}",
@@ -113,51 +197,52 @@ for num in range(1, st.session_state["num_credits"] + 1):
     )
     CREDITS.append(credit)
 
-st.markdown(
-    """
-    ## Savings
-    """
-)
-
-if "num_savings" not in st.session_state:
-    st.session_state["num_savings"] = 0
-
-if st.button("Add saving"):
-    st.session_state["num_savings"] += 1
-
-SAVINGS = []
-
-for num in range(1, st.session_state["num_savings"] + 1):
-    name = st.text_input(label="Saving name", value="Saving", key=f"saving_name_{num}")
-    monthly_amount = st.number_input(
-        label="monthly amount (DKK)", value=5000, key=f"saving_monthly_amount_{num}"
-    )
-    initial_amount = st.number_input(
-        label="current amount (DKK)", value=10000, key=f"saving_initial_amount_{num}"
-    )
-    interest_rate = st.number_input(
-        label="interest rate", value=0.02, key=f"saving_interest_rate_{num}"
-    )
-    interest_frequency = st.selectbox(
-        label="frequency",
-        options=["monthly", "annually"],
-        key=f"saving_interest_frequency_{num}",
-    )
-    saving = Saving(
-        name=name,
-        monthly_amount=monthly_amount,
-        initial_amount=initial_amount,
-        interest_rate=interest_rate,
-        interest_frequency=interest_frequency,
-    )
-    SAVINGS.append(saving)
-
 budget = Budget(incomes=INCOMES, expenses=EXPENSES, savings=SAVINGS, credits=CREDITS)
 
-if st.button("Run"):
-    budget.run()
-    budget.get_summary()
+##################
+# RUN SIMULATION #
+##################
 
+budget.run()
+budget.get_summary()
+
+#############
+# VISUALIZE #
+#############
+
+if st.button("Simulate Income"):
+    #######################################
+    # PLOT CUMULATIVE INCOMES ACROSS TIME #
+    #######################################
+
+    fig = plot_components_across_time(
+        components=budget.incomes,
+        from_date=dt.date.today(),
+        to_date=dt.date(year_of_death, 1, 1),
+        stacked=False,
+        cumulative=False,
+        agg="mean",
+    )
+    st.pyplot(fig)
+
+
+if st.button("Simulate Saving"):
+    #######################################
+    # PLOT SAVINGS ACROSS TIME #
+    #######################################
+
+    fig = plot_components_across_time(
+        components=budget.savings,
+        from_date=dt.date.today(),
+        to_date=dt.date(year_of_death, 1, 1),
+        stacked=True,
+        cumulative=True,
+        agg="sum",
+    )
+    st.pyplot(fig)
+
+
+if False:
     #############################################
     # PLOT STATIC BUDGET
     #############################################
@@ -196,15 +281,5 @@ if st.button("Run"):
     st.pyplot(fig)
 
     #############################################
-    # PLOT CUMULATIVE BUDGET ACROSS TIME
+    # PLOT SAVINGS BUDGET ACROSS TIME
     #############################################
-
-    fig = plot_components_across_time(
-        components=budget.savings,
-        from_date=from_date,
-        to_date=to_date,
-        stacked=True,
-        cumulative=True,
-        agg="sum",
-    )
-    st.pyplot(fig)

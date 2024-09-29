@@ -22,7 +22,7 @@ class Budget:
         pass
 
     def run(self):
-        for month in range(30 * 12):
+        for month in range(60 * 12):
             self.update()
             date = self.incomes[0].current_date
 

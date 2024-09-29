@@ -15,12 +15,14 @@ class Income:
         monthly_amount: float = 50000,
         change_at_dates: T.List[dt.date] = [],
         change_by_amounts: T.List[float] = [],
+        last_income_date: dt.date = dt.date(2050, 1, 1),
     ):
         today = dt.date.today().replace(day=1)
         self.current_date = today  # internal date reference, to be updated continuously
         self.name = name
         self.monthly_amount = monthly_amount
         self.change_dict = {d: a for d, a in zip(change_at_dates, change_by_amounts)}
+        self.last_income_date = last_income_date
         self.monthly_amounts = pd.DataFrame(columns=["date", "amount"]).set_index(
             "date"
         )
@@ -51,7 +53,8 @@ class Income:
         self.current_date += relativedelta(months=+1)
         if self.current_date in self.change_dict:
             self.monthly_amount += self.change_dict.get(self.current_date)
-            pass
+        if self.current_date > self.last_income_date:
+            self.monthly_amount = 0
 
     def get_summary(self):
         df = self.monthly_amounts.merge(
