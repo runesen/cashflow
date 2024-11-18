@@ -79,32 +79,39 @@ def _plot_stacked_bars(
     agg: str,
     bottom: float = 0,
     sign: int = 1,
+    add_interests: bool = False,
 ):
     components_sum = bottom
     for c in components:
-        c_amounts = (
-            sign
-            * c.summary[(c.summary.index >= from_date) & (c.summary.index <= to_date)][
-                "amount"
-            ]
-        )
-        c_value = (
-            c_amounts.sum()
-            if agg == "sum"
-            else c_amounts.mean()
-            if agg == "mean"
-            else logger.error("Unknown aggregation")
-        )
-        ax.bar(
-            x=c.plot_position,
-            height=c_value,
-            width=0.75,
-            label=c.name,
-            bottom=components_sum,
-            color=c.color,
-        )
-        components_sum += c_value
+        for value in ["amount", "interest"] if add_interests else ["amount"]:
+            alpha = 1 if value == "amount" else 0.5
+            label = c.name if value == "amount" else c.name + " (interests)"
+            values = (
+                sign
+                * c.summary[
+                    (c.summary.index >= from_date) & (c.summary.index <= to_date)
+                ][value]
+            )
+            values_to_plot = (
+                values.sum()
+                if agg == "sum"
+                else values.mean()
+                if agg == "mean"
+                else logger.error("Unknown aggregation")
+            )
+            ax.bar(
+                x=c.plot_position,
+                height=values_to_plot,
+                width=0.75,
+                label=label,
+                bottom=components_sum,
+                color=c.color,
+                alpha=alpha,
+            )
+            components_sum += values_to_plot
+            pass
         pass
+
     return components_sum
 
 
@@ -114,28 +121,40 @@ def _plot_unstacked_bars(
     to_date: dt.date,
     ax: matplotlib.axes._axes.Axes,
     agg: str,
+    add_interests: bool = False,
 ):
-    for x, c in enumerate(components):
-        c_amounts = c.summary[
-            (c.summary.index >= from_date) & (c.summary.index <= to_date)
-            ]["amount"]
-        c_value = (
-            c_amounts.sum()
-            if agg == "sum"
-            else c_amounts.mean()
-            if agg == "mean"
-            else logger.error("Unknown aggregation")
-        )
-        ax.bar(
-            x=x,
-            height=c_value,
-            width=0.75,
-            label=c.name,
-            color=c.color,
-        )
+    positions = []
+    labels = []
+    i = 0
+    for c in components:
+        for value in ["amount", "interest"] if add_interests else ["amount"]:
+            i += 1
+            label = c.name if value == "amount" else c.name + " (interests)"
+            alpha = 1 if value == "amount" else 0.5
+            positions.append(i)
+            labels.append(label)
+
+            values = c.summary[
+                (c.summary.index >= from_date) & (c.summary.index <= to_date)
+            ][value]
+            values_to_plot = (
+                values.sum()
+                if agg == "sum"
+                else values.mean()
+                if agg == "mean"
+                else logger.error("Unknown aggregation")
+            )
+            ax.bar(
+                x=i,
+                height=values_to_plot,
+                width=0.75,
+                label=label,
+                color=c.color,
+                alpha=alpha,
+            )
+            pass
         pass
-    positions = [i for i in range(len(components))]
-    labels = [c.name for c in components]
+
     ax.set_xticks(positions)
     ax.set_xticklabels(labels)
     return None
@@ -205,17 +224,26 @@ def _plot_stacked_curves(
     cumulative: bool,
     ax: matplotlib.axes._axes.Axes,
     sign: int = 1,
+    add_interests: bool = False,
 ):
     sum_of_values = pd.Series(0, index=date_range)
     for c in components:
-        c_amounts = c.summary.loc[date_range]["amount"]
-        c_values = sign * (c_amounts if not cumulative else c_amounts.cumsum())
-        sum_of_values_new = sum_of_values + c_values
-        ax.plot(sum_of_values_new, label=c.name, color=c.color)
-        ax.fill_between(
-            x=sum_of_values.index, y1=sum_of_values, y2=sum_of_values_new, color=c.color
-        )
-        sum_of_values = sum_of_values_new
+        for value in ["amount", "interest"] if add_interests else ["amount"]:
+            alpha = 1 if value == "amount" else 0.5
+            label = c.name if value == "amount" else c.name + " (interests)"
+            values = c.summary.loc[date_range][value]
+            values_to_plot = sign * (values if not cumulative else values.cumsum())
+            sum_of_values_new = sum_of_values + values_to_plot
+            ax.plot(sum_of_values_new, color=c.color, linewidth=0)
+            ax.fill_between(
+                x=sum_of_values.index,
+                y1=sum_of_values,
+                y2=sum_of_values_new,
+                color=c.color,
+                label=label,
+                alpha=alpha,
+            )
+            sum_of_values = sum_of_values_new
         pass
     pass
 
@@ -226,11 +254,16 @@ def _plot_unstacked_curves(
     cumulative: bool,
     ax: matplotlib.axes._axes.Axes,
     sign: int = 1,
+    add_interests: bool = False,
 ):
     for c in components:
-        c_amounts = c.summary.loc[date_range]["amount"]
-        c_values = sign * (c_amounts if not cumulative else c_amounts.cumsum())
-        ax.plot(c_values, label=c.name, color=c.color)
+        for value in ["amount", "interest"] if add_interests else ["amount"]:
+            ls = "-" if value == "amount" else "--"
+            label = c.name if value == "amount" else c.name + " (interests)"
+            values = c.summary.loc[date_range][value]
+            values_to_plot = sign * (values if not cumulative else values.cumsum())
+            ax.plot(values_to_plot, label=label, color=c.color, ls=ls)
+            pass
         pass
     pass
 
@@ -248,12 +281,13 @@ def plot_components_across_time(
     cumulative: bool = True,
     stacked: bool = True,
     agg: str = "sum",
+    add_interests: bool = False,
 ):
-    fig, axes = plt.subplots(1, 2, figsize=(10, 3), width_ratios=[3, 1])
+    fig, axes = plt.subplots(1, 2, figsize=(10, 3), width_ratios=[3, 1], sharey="all")
 
     # Fill with default values
     if from_date is None:
-        from_date = components[0].summary.index[1]
+        from_date = components[0].summary.index[0]
     if to_date is None:
         to_date = components[0].summary.index[-1]
     # define date range
@@ -262,7 +296,7 @@ def plot_components_across_time(
         .summary.index[
             (components[0].summary.index >= from_date)
             & (components[0].summary.index <= to_date)
-            ]
+        ]
         .drop_duplicates()
     )
 
@@ -273,6 +307,7 @@ def plot_components_across_time(
         ax=axes[0],
         sign=1,
         stacked=stacked,
+        add_interests=add_interests,
     )
 
     plot_bars(
@@ -282,6 +317,7 @@ def plot_components_across_time(
         ax=axes[1],
         agg=agg,
         stacked=stacked,
+        add_interests=add_interests,
     )
 
     type = components[0].type
@@ -290,6 +326,7 @@ def plot_components_across_time(
     )
     axes[0].set_title(title)
     axes[0].legend()
+    axes[0].set_ylabel("Amount (DKK)")
 
     axes[1].set_title(f"Aggregated {type}s ({agg})")
     fig.tight_layout()

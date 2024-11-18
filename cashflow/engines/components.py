@@ -145,9 +145,9 @@ class Saving:
         self.monthly_amount = monthly_amount
         self.interest_rate = interest_rate
         self.interest_frequency = interest_frequency
-        self.monthly_amounts = pd.DataFrame(columns=["date", "amount"]).set_index(
-            "date"
-        )
+        self.monthly_amounts = pd.DataFrame(
+            {"date": [today], "amount": initial_amount}
+        ).set_index("date")
         self.monthly_interests = pd.DataFrame(columns=["date", "interest"]).set_index(
             "date"
         )
